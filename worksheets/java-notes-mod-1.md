@@ -1060,10 +1060,44 @@ public class Application {
     }
 }
 ```
+<div style="break-after: page"></div>
+
+# Abstract Classes
+
+An `abstract` class is a class that can not be instantiated (`new`d) itself.  It
+only exists to serve as a base class for other classes.
+
+Abstract classes may also contain `abstract` methods.  These methods do not have
+bodies, but denote a method that **must** be overridden/provided by any class
+that derives from this class.
+
+```java
+public abstract class Animal {
+    protected String name;
+
+    public Animal(String name) { this.name = name; }
+    public String getName() { return this.name; }
+    public abstract void Eat();
+} 
+
+public class Dog extends Animal {
+    public Dog(String name) { super(name); }
+
+    @Override
+    public void Eat() { System.out.println("The dog " + name + "eats"); }
+}
+
+public class Cat extends Animal {
+    public Cat(String name) { super(name); }
+
+    @Override
+    public void Eat() { System.out.println("The dog " + name + "eats"); }
+}
+```
 
 <div style="break-after: page"></div>
 
-# Classes - Interfaces
+# Interfaces
 
 Interfaces let us define common behaviors that objects share outside of
 the class heirerchy.
@@ -1316,10 +1350,9 @@ In general, throwing or passing exceptions up shoudl be avoided where
 possible.  The exceptional case should be avoided or handled
 at the lowest level possible.
 
-
 <div style="break-after: page"></div>
 
-# File IO
+# File IO - Basics
 
 ## Reading a text file line by line
 
@@ -1327,11 +1360,11 @@ at the lowest level possible.
 File dataFile = new File("myFile.txt");
 try (Scanner dataScanner = new Scanner(dataFile)) {
     while (dataScanner.hasNextLine()) {
-        String currentLine = scanner.nextLine();
+        String currentLine = dataScanner.nextLine();
 
         // Process the line...
     }
-} catch (FileNotFoundException) {
+} catch (FileNotFoundException ex) {
     System.out.println("File not found");
 }
 ```
@@ -1366,3 +1399,84 @@ try (PrintWriter dataOutput = new PrintWriter(new FileOutputStream("myFile.txt",
     System.err.println("Cannot open the file for writing.");
 }
 ```
+
+<div style="break-after: page"></div>
+
+# File IO - Advanced Examples
+
+## Reading one file and Writing to another at the same time
+
+We can specify multiple resources in a `try with resources` statement by putting
+multiple variable/assignment statements in the parentheses separated by semicolons.
+
+
+```java
+File dataFile = new File("myFile.txt");
+try (
+    Scanner dataScanner = new Scanner(dataFile);
+    PrintWriter dataOutput = new PrintWriter(new FileOutputStream("myFile.txt", true)))
+) {
+    while (dataScanner.hasNextLine()) {
+        String currentLine = dataScanner.nextLine();
+
+        // Process the line...
+
+        // Write to other file
+        dataOutput.println(currentLine);
+    }
+} catch (FileNotFoundException ex) {
+    System.out.println("File not found");
+}
+```
+
+## Reading the first line separately
+
+```java
+File dataFile = new File("myFile.txt");
+try (Scanner dataScanner = new Scanner(dataFile)) {
+    String firstLine = dataScanner.readLine();
+
+    // Process first line...
+
+    while (dataScanner.hasNextLine()) {
+        String currentLine = dataScanner.nextLine();
+        // Process other lines...
+    }
+} catch (FileNotFoundException ex) {
+    System.out.println("File not found");
+}
+```
+
+<div style="break-after: page"></div>
+
+# File IO - Advanced Examples #2
+
+## Splitting a file based on line count
+
+```java
+File dataFile = new File("myFile.txt");
+try (Scanner dataScanner = new Scanner(dataFile)) {
+    int i = 1;
+
+    while (dataScanner.hasNextLine()) {
+        String dotLocation = String.lastIndexOf(".");
+        String outFile = 
+            filename.subString(0, dotLocation) + "-" + i + filename.subString(dotLocation + 1);
+        i++;
+
+        try (PrintWriter dataOutput = new PrintWriter(new FileOutputStream(outFile, true))) {
+            for (int i = 0; i < 5; i++) {
+               if (dataScanner.hasNextLine()) {
+                    String currentLine = dataScanner.nextLine();
+                    dataOutput.writeLine(currentLine);
+               }
+            }
+        } catch (FileNotFoundException ex) {
+            System.out.println("Could not write output file :" + outFile);
+        }
+    }
+} catch (FileNotFoundException ex) {
+    System.out.println("Could not open input file");
+}
+```
+
